@@ -7,7 +7,7 @@ const verifyToken = require("./verifyToken");
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 6061;
+const port = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());

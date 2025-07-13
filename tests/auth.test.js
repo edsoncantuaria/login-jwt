@@ -4,11 +4,12 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 let accessToken = "";
+const randomEmail = `edson+${Date.now()}@teste.com`;
 
-beforeAll(async () => {
-  // comando para limpar o banco de dados antes dos testes
-  await prisma.user.deleteMany();
-});
+// beforeAll(async () => {
+//   // comando para limpar o banco de dados antes dos testes
+//   await prisma.user.deleteMany();
+// });
 
 afterAll(async () => {
   await prisma.$disconnect();
@@ -18,7 +19,7 @@ describe("Autenticação com JWT", () => {
   it("deve registrar um novo usuário", async () => {
     const res = await request(app).post("/auth/register").send({
       name: "Edson",
-      email: "edson@teste.com",
+      email: randomEmail,
       password: "123456",
     });
     expect(res.statusCode).toBe(201);
@@ -26,7 +27,7 @@ describe("Autenticação com JWT", () => {
 
   it("deve fazer login e retornar tokens", async () => {
     const res = await request(app).post("/auth/login").send({
-      email: "edson@teste.com",
+      email: randomEmail,
       password: "123456",
     });
     expect(res.statusCode).toBe(200);
@@ -41,7 +42,7 @@ describe("Autenticação com JWT", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("user");
-    expect(res.body.user.email).toBe("edson@teste.com");
+    expect(res.body.user.email).toBe(randomEmail);
   });
 
   it("deve bloquear acesso sem token", async () => {
@@ -55,6 +56,6 @@ describe("Autenticação com JWT", () => {
       .get("/private")
       .set("Authorization", "Bearer token_invalido");
     expect(res.statusCode).toBe(403);
-    expect(res.body.error).toBe("Token inválido");
+    expect(res.body.error).toBe("Token inválido ou expirado");
   });
 });
