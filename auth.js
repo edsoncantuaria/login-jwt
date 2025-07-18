@@ -3,11 +3,31 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
+const { z } = require("zod");
 
 const prisma = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+const authSchema = z
+  .object({
+    name: z.string().min(3, "Nome é Muito curto").max(50, "Nome é muito longo"),
+    email: z.email("Email inválido"),
+    password: z
+      .string()
+      .min(6, "Senha deve ter pelo menos 6 caracteres")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
+        "Senha deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial"
+      ),
+    confirmPassword: z
+      .string()
+      .min(6, "Confirmação de senha deve ter pelo menos 6 caracteres"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+  });
 
 // Gerar tokens
 function generateTokens(user) {
@@ -18,7 +38,7 @@ function generateTokens(user) {
   const refreshToken = jwt.sign(
     { id: user.id, email: user.email },
     JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: "3h" }
   );
 
   return { accessToken, refreshToken };
@@ -26,7 +46,21 @@ function generateTokens(user) {
 
 // Rota de registro
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password } = authSchema.parse(req.body);
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+  }
+  try {
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "Usuário já existe com esse email cadastrado." });
+    }
+  } catch (error) {
+    console.error("Erro ao verificar usuário:", error);
+    return res.status(500).json({ error: "Erro ao verificar usuário" });
+  }
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
