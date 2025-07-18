@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Mail, KeyRound, Moon, Sun } from "lucide-react";
 import { useDarkMode } from "../hooks/useDarkMode";
 import Input from "../components/Input";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -19,13 +21,41 @@ function Login() {
         email,
         password,
       });
-      const token = res.data.accessToken;
-      localStorage.setItem("token", token);
-      navigate("/dashboard");
+      // const token = res.data.accessToken;
+      localStorage.setItem("token", res.data.accessToken);
+      localStorage.setItem("refreshToken", res.data.refreshToken);
+      toast.success("Login realizado com sucesso!");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 2000);
     } catch (err) {
       setError("Login inválido");
     }
   }
+
+  async function stillLoggedIn() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const res = await axios.get("http://192.168.0.171:6062/private", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.data.loggedIn === true) {
+          navigate("/dashboard");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar o login:", err);
+        localStorage.removeItem("token");
+        navigate("/");
+      }
+    }
+  }
+
+  useEffect(() => {
+    stillLoggedIn();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-blue-900 md:bg-white dark:bg-gray-900">
@@ -87,21 +117,44 @@ function Login() {
               required
             />
           </div>
-          <button
-            type="submit"
-            data-testid="login-button"
-            className="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
-          >
-            Entrar
-          </button>
-          {error && (
-            <p
-              data-testid="login-error-message"
-              className="mt-4 text-red-600 text-center"
+          <div>
+            <button
+              type="submit"
+              data-testid="login-button"
+              className="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
             >
-              {error}
-            </p>
-          )}
+              Entrar
+            </button>
+            {error && (
+              <p
+                data-testid="login-error-message"
+                className="mt-4 text-red-600 text-center"
+              >
+                {error}
+              </p>
+            )}
+            <ToastContainer
+              position="top-center"
+              autoClose={3000}
+              theme={theme}
+            />
+          </div>
+          <div
+            className="text-center mt-4"
+            id="register-link"
+            data-testid="register-link"
+          >
+            <span className="text-gray-600 dark:text-gray-400">
+              Não tem uma conta?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-blue-600 dark:text-blue-400 hover:underline registrar"
+                data-testid="register-button"
+              >
+                Registrar
+              </button>
+            </span>
+          </div>
         </form>
       </div>
     </div>
