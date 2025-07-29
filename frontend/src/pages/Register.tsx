@@ -10,8 +10,13 @@ import "react-toastify/dist/ReactToastify.css";
 
 const authSchema = z
   .object({
-    name: z.string().min(3, "Nome é muito curto").max(50, "Nome é muito longo"),
-    email: z.email("Email inválido"),
+    name: z
+      .string()
+      .min(1, "Nome é obrigatório")
+      .min(3, "Nome é muito curto")
+      .max(50, "Nome é muito longo")
+      .regex(/^[A-Za-z\s]+$/, "Nome inválido (somente letras)"),
+    email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
     password: z
       .string()
       .min(6, "Senha deve ter pelo menos 6 caracteres")
