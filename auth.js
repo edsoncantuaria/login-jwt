@@ -12,21 +12,29 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 const authSchema = z
   .object({
-    name: z.string().min(3, "Nome é Muito curto").max(50, "Nome é muito longo"),
-    email: z.email("Email inválido"),
+    name: z
+      .string()
+      .trim()
+      .min(3, "Nome é muito curto")
+      .max(50, "Nome é muito longo"),
+    email: z
+      .email("Email inválido")
+      .nonempty({ message: "Email é obrigatório" }),
     password: z
       .string()
       .min(6, "Senha deve ter pelo menos 6 caracteres")
       .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/,
-        "Senha deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial"
-      ),
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
+        "Senha deve conter letra maiúscula, minúscula, número e caractere especial"
+      )
+      .nonempty({ message: "Senha é obrigatória" }),
     confirmPassword: z
       .string()
-      .min(6, "Confirmação de senha deve ter pelo menos 6 caracteres"),
+      .nonempty({ message: "Confirmação de senha é obrigatória" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem",
+    path: ["confirmPassword"],
   });
 
 // Gerar tokens

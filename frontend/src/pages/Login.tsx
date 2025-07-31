@@ -6,6 +6,7 @@ import { useDarkMode } from "../hooks/useDarkMode";
 import Input from "../components/Input";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -60,12 +61,7 @@ function Login() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-blue-900 md:bg-white dark:bg-gray-900">
       <div className="absolute top-4 right-4">
-        <button
-          onClick={typeof toggleTheme === "function" ? toggleTheme : undefined}
-          className="px-3 py-1 text-sm border rounded-md bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition "
-        >
-          {theme === "dark" ? <Sun /> : <Moon />}
-        </button>
+        <ThemeToggleButton />
       </div>
 
       {/* Lado esquerdo com o nome do sistema */}
@@ -122,6 +118,7 @@ function Login() {
               type="submit"
               data-testid="login-button"
               className="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
+              id="login-button"
             >
               Entrar
             </button>
@@ -129,6 +126,7 @@ function Login() {
               <p
                 data-testid="login-error-message"
                 className="mt-4 text-red-600 text-center"
+                id="login-error-message"
               >
                 {error}
               </p>

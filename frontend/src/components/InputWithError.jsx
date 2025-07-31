@@ -18,9 +18,15 @@ function InputWithError({ error, ...props }) {
       />
 
       {error && (
-        <div className="absolute -top-9 right-0 bg-red-500 text-white text-xs rounded px-3 py-1 shadow-lg z-10 animate-fade-in">
+        <div
+          id="error-message"
+          className="absolute -top-9 right-0 bg-red-500 text-white text-xs rounded px-3 py-1 shadow-lg z-10 animate-fade-in"
+        >
           {error}
-          <div className="absolute left-3 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-red-500" />
+          <div
+            id="error-arrow"
+            className="absolute left-3 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-red-500"
+          />
         </div>
       )}
     </div>

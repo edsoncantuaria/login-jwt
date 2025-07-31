@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -7,24 +7,29 @@ import { useDarkMode } from "../hooks/useDarkMode";
 import InputWithError from "../components/InputWithError";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 const authSchema = z
   .object({
     name: z
       .string()
-      .min(1, "Nome é obrigatório")
+      .trim()
       .min(3, "Nome é muito curto")
-      .max(50, "Nome é muito longo")
-      .regex(/^[A-Za-z\s]+$/, "Nome inválido (somente letras)"),
-    email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
+      .max(50, "Nome é muito longo"),
+    email: z
+      .email("Email inválido")
+      .nonempty({ message: "Email é obrigatório" }),
     password: z
       .string()
       .min(6, "Senha deve ter pelo menos 6 caracteres")
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
         "Senha deve conter letra maiúscula, minúscula, número e caractere especial"
-      ),
-    confirmPassword: z.string(),
+      )
+      .nonempty({ message: "Senha é obrigatória" }),
+    confirmPassword: z
+      .string()
+      .nonempty({ message: "Confirmação de senha é obrigatória" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "As senhas não coincidem",
@@ -40,6 +45,30 @@ function Register() {
   const [formErrors, setFormErrors] = useState<any>({});
   const navigate = useNavigate();
   const [theme, toggleTheme] = useDarkMode();
+
+  async function stillLoggedIn() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const res = await axios.get("http://192.168.0.171:6062/private", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (res.data.loggedIn === true) {
+          navigate("/dashboard");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar o login:", err);
+        localStorage.removeItem("token");
+        navigate("/");
+      }
+    }
+  }
+
+  useEffect(() => {
+    stillLoggedIn();
+  }, []);
 
   async function handleRegister(e) {
     e.preventDefault();
@@ -83,12 +112,7 @@ function Register() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-blue-900 md:bg-white dark:bg-gray-900">
       <div className="absolute top-4 right-4">
-        <button
-          onClick={typeof toggleTheme === "function" ? toggleTheme : undefined}
-          className="px-3 py-1 text-sm border rounded-md bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition "
-        >
-          {theme === "dark" ? <Sun /> : <Moon />}
-        </button>
+        <ThemeToggleButton />
       </div>
 
       {/* Lado esquerdo com o nome do sistema */}
@@ -181,6 +205,7 @@ function Register() {
           <button
             type="submit"
             data-testid="register-button"
+            id="register-button"
             className="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700"
           >
             Registrar-se
@@ -189,6 +214,7 @@ function Register() {
             <p
               data-testid="register-error-message"
               className="mt-4 text-red-600 text-center"
+              id="register-error-message"
             >
               {error}
             </p>

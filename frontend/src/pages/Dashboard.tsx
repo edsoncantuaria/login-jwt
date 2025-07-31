@@ -5,6 +5,7 @@ import { Moon, Sun } from "lucide-react";
 import useDarkMode from "../hooks/useDarkMode";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ThemeToggleButton from "../components/ThemeToggleButton";
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -52,13 +53,8 @@ function Dashboard() {
         {user && <span>Logado como: {user.email}</span>}
       </div>
       {/* Botão de tema */}
-      <div className="absolute top-4 right-4 flex gap-2">
-        <button
-          onClick={toggleTheme}
-          className="px-3 py-1 text-sm border rounded-md bg-gray-100 dark:bg-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-        >
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+      <div className="absolute top-4 right-4 flex items-center space-x-2">
+        <ThemeToggleButton />
         <button
           onClick={handleLogout}
           className="px-3 py-1 text-sm border rounded-md bg-red-600 text-white hover:bg-red-700 transition"
